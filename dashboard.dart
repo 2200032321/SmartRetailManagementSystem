@@ -15,8 +15,18 @@ class Dashboard extends StatelessWidget {
   Dashboard({required this.token});
 
   final List<Map<String, dynamic>> features = [
-    {'title': 'Add Product', 'icon': Icons.add_box, 'page': AddProductPage, 'colors': [Colors.blue, Colors.lightBlueAccent]},
-    {'title': 'View Products', 'icon': Icons.view_list, 'page': ViewProductsPage, 'colors': [Colors.green, Colors.lightGreenAccent]},
+    {
+      'title': 'Add Product',
+      'icon': Icons.add_box,
+      'page': (String token) => AddProductPage(token: token),
+      'colors': [Colors.blue, Colors.lightBlueAccent]
+    },
+    {
+      'title': 'View Products',
+      'icon': Icons.view_list,
+      'page': (String token) => ViewProductsPage(token: token),
+      'colors': [Colors.green, Colors.lightGreenAccent]
+    },
     {'title': 'Barcode Scanner', 'icon': Icons.qr_code_scanner, 'page': BarcodeScannerPage, 'colors': [Colors.orange, Colors.deepOrangeAccent]},
     {'title': 'Suppliers', 'icon': Icons.local_shipping, 'page': SupplierPage, 'colors': [Colors.purple, Colors.deepPurpleAccent]},
     {'title': 'CRM', 'icon': Icons.people, 'page': CRMPage, 'colors': [Colors.teal, Colors.tealAccent]},
@@ -48,7 +58,7 @@ class Dashboard extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => feature['page'](token: token),
+                    builder: (context) => feature['page'](token), // call the lambda
                   ),
                 );
               },
