@@ -1,44 +1,61 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'dashboard.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginPageState extends State<LoginPage> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  bool obscurePassword = true;
   bool loading = false;
 
   Future<void> login() async {
+    final username = usernameController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (username.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter username and password")),
+      );
+      return;
+    }
+
     setState(() => loading = true);
-    final url = Uri.parse('http://localhost:3000/api/auth/login');
 
     try {
-      final response = await http.post(url,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'email': _emailController.text,
-            'password': _passwordController.text,
-          }));
+      final url = Uri.parse('http://localhost:3000/api/auth/login'); // Update with your API
+
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': username,
+          'password': password,
+        }),
+      );
 
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
         final token = data['token'];
-        // Pass token to dashboard
-        Navigator.pushReplacementNamed(context, '/dashboard',
-            arguments: token);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => Dashboard(token: token)),
+        );
       } else {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(data['message'])));
+            .showSnackBar(SnackBar(content: Text(data['message'] ?? 'Login failed')));
       }
     } catch (e) {
-      print(e);
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Server error')));
+          .showSnackBar(const SnackBar(content: Text('Server error')));
     } finally {
       setState(() => loading = false);
     }
@@ -47,74 +64,199 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        padding: EdgeInsets.symmetric(horizontal: 30),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.blue.shade300, Colors.blue.shade900],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                Text(
-                  "Smart Retail Management System with AI",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold),
+      body: Row(
+        children: [
+          // LEFT SIDE: Background Image + Branding
+          Expanded(
+            flex: 1,
+            child: Container(
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage("assets/loginpic.jpg"),
+                  fit: BoxFit.cover,
                 ),
-                SizedBox(height: 50),
-                _buildTextField(_emailController, 'Email'),
-                SizedBox(height: 20),
-                _buildTextField(_passwordController, 'Password', obscure: true),
-                SizedBox(height: 30),
-                loading
-                    ? CircularProgressIndicator(
-                  color: Colors.white,
-                )
-                    : ElevatedButton(
-                  onPressed: login,
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 80, vertical: 15),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30)),
-                    backgroundColor: Colors.white,
-                  ),
-                  child: Text(
-                    "Login",
-                    style: TextStyle(
-                        fontSize: 18, color: Colors.blue.shade900),
+              ),
+              child: Container(
+                color: Colors.black.withOpacity(0.5),
+                padding: const EdgeInsets.all(40),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Text(
+                        "Smart Retail Management System with AI",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 20),
+                      Text(
+                        "Manage sales, inventory, and staff seamlessly.\n"
+                            "Boost productivity with AI-powered insights.",
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 16,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
-    );
-  }
 
-  Widget _buildTextField(TextEditingController controller, String label,
-      {bool obscure = false}) {
-    return TextField(
-      controller: controller,
-      obscureText: obscure,
-      style: TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(color: Colors.white70),
-        filled: true,
-        fillColor: Colors.white.withOpacity(0.2),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide.none,
-        ),
+          // RIGHT SIDE: Login Form
+          Expanded(
+            flex: 1,
+            child: Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 40),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Top part: login form
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Welcome Back 👋",
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      const Text(
+                        "Enter your username and password to access your account.",
+                        style: TextStyle(color: Colors.black54, fontSize: 14),
+                      ),
+                      const SizedBox(height: 40),
+
+                      // Username
+                      TextField(
+                        controller: usernameController,
+                        decoration: InputDecoration(
+                          labelText: "Email",
+                          prefixIcon: const Icon(Icons.person_outline),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Password
+                      TextField(
+                        controller: passwordController,
+                        obscureText: obscurePassword,
+                        decoration: InputDecoration(
+                          labelText: "Password",
+                          prefixIcon: const Icon(Icons.lock_outline),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              obscurePassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                            ),
+                            onPressed: () {
+                              setState(() => obscurePassword = !obscurePassword);
+                            },
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+
+                      // Forgot password
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {},
+                          child: const Text("Forgot Password?"),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Login Button
+                      SizedBox(
+                        width: double.infinity,
+                        child: loading
+                            ? const Center(child: CircularProgressIndicator())
+                            : ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green.shade400,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: login,
+                          child: const Text(
+                            "Log In",
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // Bottom part: social login buttons
+                  Column(
+                    children: [
+                      Row(
+                        children: const [
+                          Expanded(child: Divider()),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Text("Or Login With"),
+                          ),
+                          Expanded(child: Divider()),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () {},
+                          icon: Image.asset("assets/google.png", height: 20),
+                          label: const Text("Continue with Google"),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () {},
+                          icon: Image.asset("assets/apple.webp", height: 20),
+                          label: const Text("Continue with Apple"),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
