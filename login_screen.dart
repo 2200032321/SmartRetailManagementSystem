@@ -28,6 +28,7 @@ class _LoginPageState extends State<LoginPage> {
 
       if (response.statusCode == 200) {
         final token = data['token'];
+        // Pass token to dashboard
         Navigator.pushReplacementNamed(context, '/dashboard',
             arguments: token);
       } else {
@@ -46,20 +47,75 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text('Login')),
-        body: Padding(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextField(controller: _emailController, decoration: InputDecoration(labelText: 'Email')),
-              TextField(controller: _passwordController, decoration: InputDecoration(labelText: 'Password'), obscureText: true),
-              SizedBox(height: 20),
-              loading
-                  ? CircularProgressIndicator()
-                  : ElevatedButton(onPressed: login, child: Text('Login')),
-            ],
+      body: Container(
+        padding: EdgeInsets.symmetric(horizontal: 30),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade300, Colors.blue.shade900],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-        ));
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Text(
+                  "Smart Retail Management System with AI",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 50),
+                _buildTextField(_emailController, 'Email'),
+                SizedBox(height: 20),
+                _buildTextField(_passwordController, 'Password', obscure: true),
+                SizedBox(height: 30),
+                loading
+                    ? CircularProgressIndicator(
+                  color: Colors.white,
+                )
+                    : ElevatedButton(
+                  onPressed: login,
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 80, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30)),
+                    backgroundColor: Colors.white,
+                  ),
+                  child: Text(
+                    "Login",
+                    style: TextStyle(
+                        fontSize: 18, color: Colors.blue.shade900),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label,
+      {bool obscure = false}) {
+    return TextField(
+      controller: controller,
+      obscureText: obscure,
+      style: TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: Colors.white70),
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.2),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(20),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
   }
 }
