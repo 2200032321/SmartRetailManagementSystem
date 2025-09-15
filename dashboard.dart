@@ -9,6 +9,7 @@ import 'chatbot_page.dart';
 import 'billing_page.dart';
 import 'analytics_page.dart';
 import 'employee_page.dart';
+import 'login_screen.dart';
 
 class Dashboard extends StatelessWidget {
   final String token;
@@ -27,20 +28,71 @@ class Dashboard extends StatelessWidget {
       'page': (String token) => ViewProductsPage(token: token),
       'colors': [Colors.green, Colors.lightGreenAccent]
     },
-    {'title': 'Barcode Scanner', 'icon': Icons.qr_code_scanner, 'page': BarcodeScannerPage, 'colors': [Colors.orange, Colors.deepOrangeAccent]},
-    {'title': 'Suppliers', 'icon': Icons.local_shipping, 'page': SupplierPage, 'colors': [Colors.purple, Colors.deepPurpleAccent]},
-    {'title': 'CRM', 'icon': Icons.people, 'page': CRMPage, 'colors': [Colors.teal, Colors.tealAccent]},
-    {'title': 'AI Recommendations', 'icon': Icons.smart_toy, 'page': AIRecommendationsPage, 'colors': [Colors.indigo, Colors.indigoAccent]},
-    {'title': 'Chatbot', 'icon': Icons.chat_bubble, 'page': ChatbotPage, 'colors': [Colors.red, Colors.redAccent]},
-    {'title': 'Billing', 'icon': Icons.receipt_long, 'page': BillingPage, 'colors': [Colors.cyan, Colors.cyanAccent]},
-    {'title': 'Analytics', 'icon': Icons.analytics, 'page': AnalyticsPage, 'colors': [Colors.amber, Colors.amberAccent]},
-    {'title': 'Employees', 'icon': Icons.badge, 'page': EmployeePage, 'colors': [Colors.pink, Colors.pinkAccent]},
+    {
+      'title': 'Barcode Scanner',
+      'icon': Icons.qr_code_scanner,
+      'page': (String token) => BarcodeScannerPage(token: '',),
+      'colors': [Colors.orange, Colors.deepOrangeAccent]
+    },
+    {
+      'title': 'Suppliers',
+      'icon': Icons.local_shipping,
+      'page': (String token) => SupplierPage(token: '',),
+      'colors': [Colors.purple, Colors.deepPurpleAccent]
+    },
+    {
+      'title': 'CRM',
+      'icon': Icons.people,
+      'page': (String token) => CRMPage(token: '',),
+      'colors': [Colors.teal, Colors.tealAccent]
+    },
+    {
+      'title': 'AI Recommendations',
+      'icon': Icons.smart_toy,
+      'page': (String token) => AIRecommendationsPage(token: '',),
+      'colors': [Colors.indigo, Colors.indigoAccent]
+    },
+    {
+      'title': 'Chatbot',
+      'icon': Icons.chat_bubble,
+      'page': (String token) => ChatbotPage(token: '',),
+      'colors': [Colors.red, Colors.redAccent]
+    },
+    {
+      'title': 'Billing',
+      'icon': Icons.receipt_long,
+      'page': (String token) => BillingPage(token: '',),
+      'colors': [Colors.cyan, Colors.cyanAccent]
+    },
+    {
+      'title': 'Analytics',
+      'icon': Icons.analytics,
+      'page': (String token) => AnalyticsPage(token: '',),
+      'colors': [Colors.amber, Colors.amberAccent]
+    },
+    {
+      'title': 'Employees',
+      'icon': Icons.badge,
+      'page': (String token) => EmployeePage(token: '',),
+      'colors': [Colors.pink, Colors.pinkAccent]
+    },
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Dashboard')),
+      appBar: AppBar(
+        title: Text('Dashboard'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () {
+              // Logout
+              Navigator.pushReplacementNamed(context, '/');
+            },
+          )
+        ],
+      ),
       body: Padding(
         padding: EdgeInsets.all(12),
         child: GridView.builder(
@@ -58,7 +110,7 @@ class Dashboard extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => feature['page'](token), // call the lambda
+                    builder: (context) => feature['page'](token),
                   ),
                 );
               },
