@@ -1,23 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:srms_v4/screens/dashboard.dart';
 import 'package:srms_v4/screens/login_screen.dart';
-import 'screens/login_screen.dart';
-import 'screens/dashboard.dart';
+
 
 void main() {
-  runApp(MyApp());
+  runApp(SRMSApp());
 }
 
-class MyApp extends StatelessWidget {
+class SRMSApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'SRMS App',
-      theme: ThemeData(primarySwatch: Colors.blue),
       debugShowCheckedModeBanner: false,
-      initialRoute: '/login',
+      title: 'Smart Retail Management System with AI',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      initialRoute: '/',
       routes: {
-        '/login': (context) => LoginPage(),
-        '/dashboard': (context) => Dashboard(token: '',),
+        '/': (context) => LoginPage(),
+        '/dashboard': (context) {
+          final token = ModalRoute.of(context)!.settings.arguments as String;
+          return Dashboard(token: token);
+        },
       },
     );
   }
