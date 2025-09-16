@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:srms_v4/screens/login_screen.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'login_screen.dart';
 import 'add_product.dart';
 import 'view_products.dart';
 import 'barcode_scanner.dart';
@@ -19,64 +20,74 @@ class Dashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     final List<Map<String, dynamic>> features = [
       {
-        'title': 'Add Product',
-        'icon': Icons.add_box,
-        'page': (String token) => AddProductPage(token: token),
-        'colors': [Colors.blue, Colors.lightBlueAccent]
+        'title': 'Billing',
+        'subtitle': 'Manage bills',
+        'icon': Icons.receipt_long,
+        'page': (String token) => BillingPage(token: token),
+        'color': Colors.indigo,
       },
       {
         'title': 'View Products',
+        'subtitle': 'All items',
         'icon': Icons.view_list,
         'page': (String token) => ViewProductsPage(token: token),
-        'colors': [Colors.green, Colors.lightGreenAccent]
+        'color': Colors.green,
+      },
+      {
+        'title': 'Add Product',
+        'subtitle': 'Add new stock',
+        'icon': Icons.add_box,
+        'page': (String token) => AddProductPage(token: token),
+        'color': Colors.blue,
       },
       {
         'title': 'Barcode Scanner',
+        'subtitle': 'Quick scan',
         'icon': Icons.qr_code_scanner,
         'page': (String token) => BarcodeScannerPage(token: token),
-        'colors': [Colors.orange, Colors.deepOrangeAccent]
-      },
-      {
-        'title': 'Suppliers',
-        'icon': Icons.local_shipping,
-        'page': (String token) => SupplierPage(token: token),
-        'colors': [Colors.purple, Colors.deepPurpleAccent]
-      },
-      {
-        'title': 'CRM',
-        'icon': Icons.people,
-        'page': (String token) => CRMPage(token: token),
-        'colors': [Colors.teal, Colors.tealAccent]
-      },
-      {
-        'title': 'AI Recommendations',
-        'icon': Icons.smart_toy,
-        'page': (String token) => AIRecommendationsPage(token: token),
-        'colors': [Colors.indigo, Colors.indigoAccent]
-      },
-      {
-        'title': 'Chatbot',
-        'icon': Icons.chat_bubble,
-        'page': (String token) => ChatbotPage(token: token),
-        'colors': [Colors.red, Colors.redAccent]
-      },
-      {
-        'title': 'Billing',
-        'icon': Icons.receipt_long,
-        'page': (String token) => BillingPage(token: token),
-        'colors': [Colors.cyan, Colors.cyanAccent]
+        'color': Colors.orange,
       },
       {
         'title': 'Analytics',
+        'subtitle': 'Sales reports',
         'icon': Icons.analytics,
         'page': (String token) => AnalyticsPage(token: token),
-        'colors': [Colors.amber, Colors.amberAccent]
+        'color': Colors.amber,
+      },
+      {
+        'title': 'CRM',
+        'subtitle': 'Customer data',
+        'icon': Icons.people,
+        'page': (String token) => CRMPage(token: token),
+        'color': Colors.teal,
+      },
+      {
+        'title': 'Suppliers',
+        'subtitle': 'Manage vendors',
+        'icon': Icons.local_shipping,
+        'page': (String token) => SupplierPage(token: token),
+        'color': Colors.purple,
       },
       {
         'title': 'Employees',
+        'subtitle': 'Staff details',
         'icon': Icons.badge,
         'page': (String token) => EmployeePage(token: token),
-        'colors': [Colors.pink, Colors.pinkAccent]
+        'color': Colors.pink,
+      },
+      {
+        'title': 'AI Recommendations',
+        'subtitle': 'Smart insights',
+        'icon': Icons.smart_toy,
+        'page': (String token) => AIRecommendationsPage(token: token),
+        'color': Colors.deepPurple,
+      },
+      {
+        'title': 'Chatbot',
+        'subtitle': 'Support bot',
+        'icon': Icons.chat_bubble,
+        'page': (String token) => ChatbotPage(token: token),
+        'color': Colors.red,
       },
     ];
 
@@ -86,88 +97,90 @@ class Dashboard extends StatelessWidget {
           'Smart Retail Dashboard',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            letterSpacing: 1,
+            color: Colors.white,
           ),
         ),
         centerTitle: true,
         backgroundColor: Colors.indigo,
-        elevation: 4,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.white),
             onPressed: () {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (_) => LoginPage()),
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
               );
             },
           )
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(14),
-        child: GridView.builder(
-          itemCount: features.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: MasonryGridView.count(
             crossAxisCount: 2,
             mainAxisSpacing: 16,
             crossAxisSpacing: 16,
-            childAspectRatio: 0.85, // 🔹 smaller cards
-          ),
-          itemBuilder: (context, index) {
-            final feature = features[index];
+            itemCount: features.length,
+            itemBuilder: (context, index) {
+              final feature = features[index];
+              final String title = feature['title'] as String;
+              final String subtitle = feature['subtitle'] as String;
+              final IconData icon = feature['icon'] as IconData;
+              final Color color = feature['color'] as Color;
+              final Function pageBuilder = feature['page'] as Function;
 
-            final String title = feature['title'] as String;
-            final IconData icon = feature['icon'] as IconData;
-            final List<Color> colors = feature['colors'] as List<Color>;
-            final Function pageBuilder = feature['page'] as Function;
-
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => pageBuilder(token),
-                  ),
-                );
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  gradient: LinearGradient(
-                    colors: colors,
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 6,
-                      offset: const Offset(2, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(icon, size: 42, color: Colors.white),
-                    const SizedBox(height: 12),
-                    Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => pageBuilder(token)),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 10,
+                        offset: const Offset(2, 5),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CircleAvatar(
+                        radius: 28,
+                        backgroundColor: color.withOpacity(0.15),
+                        child: Icon(icon, size: 30, color: color),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );
