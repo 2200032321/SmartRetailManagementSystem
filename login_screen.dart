@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dashboard.dart';
+import 'splash_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -30,28 +30,25 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => loading = true);
 
     try {
-      final url = Uri.parse('http://localhost:3000/api/auth/login'); // Update with your API
-
+      final url = Uri.parse('http://localhost:3000/api/auth/login');
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': username,
-          'password': password,
-        }),
+        body: jsonEncode({'email': username, 'password': password}),
       );
-
       final data = jsonDecode(response.body);
-
       if (response.statusCode == 200) {
         final token = data['token'];
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => Dashboard(token: token)),
+          MaterialPageRoute(
+            builder: (_) => SplashScreen(token: token),
+          ),
         );
       } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(data['message'] ?? 'Login failed')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(data['message'] ?? 'Login failed')),
+        );
       }
     } catch (e) {
       ScaffoldMessenger.of(context)
@@ -64,199 +61,243 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Row(
-        children: [
-          // LEFT SIDE: Background Image + Branding
-          Expanded(
-            flex: 1,
-            child: Container(
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage("assets/loginpic.jpg"),
-                  fit: BoxFit.cover,
-                ),
-              ),
-              child: Container(
-                color: Colors.black.withOpacity(0.5),
-                padding: const EdgeInsets.all(40),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Text(
-                        "Smart Retail Management System with AI",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: 20),
-                      Text(
-                        "Manage sales, inventory, and staff seamlessly.\n"
-                            "Boost productivity with AI-powered insights.",
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 16,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+      resizeToAvoidBottomInset: true,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth > 800) {
+            // Web/Desktop layout
+            return Row(
+              children: [
+                Expanded(flex: 1, child: _buildLeftBranding()),
+                Expanded(
+                  flex: 1,
+                  child: Center(
+                    child: SingleChildScrollView(
+                      child: _buildRightLoginForm(padding: 60),
+                    ),
                   ),
                 ),
-              ),
-            ),
-          ),
-
-          // RIGHT SIDE: Login Form
-          Expanded(
-            flex: 1,
-            child: Container(
-              color: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 40),
+              ],
+            );
+          } else {
+            // Mobile layout - Hide the branding image
+            return SingleChildScrollView(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Top part: login form
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Welcome Back 👋",
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 28),
+                    child: Text(
+                      "Smart Retail Management System",
+                      style: TextStyle(
+                        color: Colors.black87,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Enter your username and password to access your account.",
-                        style: TextStyle(color: Colors.black54, fontSize: 14),
-                      ),
-                      const SizedBox(height: 40),
-
-                      // Username
-                      TextField(
-                        controller: usernameController,
-                        decoration: InputDecoration(
-                          labelText: "Email",
-                          prefixIcon: const Icon(Icons.person_outline),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Password
-                      TextField(
-                        controller: passwordController,
-                        obscureText: obscurePassword,
-                        decoration: InputDecoration(
-                          labelText: "Password",
-                          prefixIcon: const Icon(Icons.lock_outline),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              obscurePassword
-                                  ? Icons.visibility_off
-                                  : Icons.visibility,
-                            ),
-                            onPressed: () {
-                              setState(() => obscurePassword = !obscurePassword);
-                            },
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 15),
-
-                      // Forgot password
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () {},
-                          child: const Text("Forgot Password?"),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Login Button
-                      SizedBox(
-                        width: double.infinity,
-                        child: loading
-                            ? const Center(child: CircularProgressIndicator())
-                            : ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green.shade400,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: login,
-                          child: const Text(
-                            "Log In",
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ),
-                      ),
-                    ],
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-
-                  // Bottom part: social login buttons
-                  Column(
-                    children: [
-                      Row(
-                        children: const [
-                          Expanded(child: Divider()),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 8.0),
-                            child: Text("Or Login With"),
-                          ),
-                          Expanded(child: Divider()),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: () {},
-                          icon: Image.asset("assets/google.png", height: 20),
-                          label: const Text("Continue with Google"),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: () {},
-                          icon: Image.asset("assets/apple.webp", height: 20),
-                          label: const Text("Continue with Apple"),
-                        ),
-                      ),
-                    ],
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Text(
+                      "Manage sales, inventory, and staff seamlessly.\nBoost productivity with AI-powered insights.",
+                      style: TextStyle(color: Colors.black54, fontSize: 13),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  SingleChildScrollView(
+                    child: _buildRightLoginForm(padding: 20),
                   ),
                 ],
               ),
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildLeftBranding({double? height}) {
+    return Container(
+      height: height,
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage("assets/loginpic.jpg"),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Container(
+        color: Colors.black.withOpacity(0.5),
+        padding: const EdgeInsets.all(30),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Text(
+                "Smart Retail Management System",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 10),
+              Text(
+                "Manage sales, inventory, and staff seamlessly.\nBoost productivity with AI-powered insights.",
+                style: TextStyle(color: Colors.white70, fontSize: 14),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRightLoginForm({double padding = 40}) {
+    return Container(
+      color: Colors.white,
+      padding: EdgeInsets.symmetric(horizontal: padding, vertical: 50),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Sign In / Sign Up Tabs
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _tabButton("Sign In", true),
+              _tabButton("Sign Up", false),
+            ],
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            "Sign in to access your credits and discounts",
+            style: TextStyle(fontSize: 14, color: Colors.black54),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 30),
+
+          // Social Buttons
+          _socialButton(
+              "Continue with Google",
+              Image.asset("assets/google.png", height: 20),
+              Colors.blue.shade600,
+                  () {}
+          ),
+          const SizedBox(height: 16),
+          _socialButton(
+              "Continue with Facebook",
+              Icon(Icons.facebook, color: Colors.white),
+              Colors.blue.shade800,
+                  () {}
+          ),
+          const SizedBox(height: 16),
+          _socialButton(
+              "Continue with Apple",
+              Image.asset("assets/apple.webp", height: 20),
+              Colors.black,
+                  () {}
+          ),
+
+          const SizedBox(height: 30),
+          const Center(child: Text("or continue with email")),
+          const SizedBox(height: 20),
+
+          // Email/Password
+          _buildTextField("Email", usernameController, Icons.email_outlined),
+          const SizedBox(height: 16),
+          _buildTextField("Password", passwordController, Icons.lock_outline,
+              obscure: true),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+                onPressed: () {}, child: const Text("Forgot your password?")),
+          ),
+          const SizedBox(height: 20),
+
+          // Login Button
+          SizedBox(
+            height: 50,
+            child: ElevatedButton(
+              onPressed: login,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade600,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+              child: loading
+                  ? const CircularProgressIndicator(
+                color: Colors.white,
+              )
+                  : const Text("Sign In", style: TextStyle(fontSize: 16)),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _tabButton(String text, bool active) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: active ? Colors.grey.shade300 : Colors.transparent,
+          borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: active ? Colors.black : Colors.grey),
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+
+  Widget _socialButton(
+      String text, Widget iconWidget, Color color, VoidCallback onPressed) {
+    return SizedBox(
+      height: 50,
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        icon: iconWidget,
+        label: Text(text),
+        style: OutlinedButton.styleFrom(
+          backgroundColor: color,
+          foregroundColor: Colors.white,
+          minimumSize: Size(200, 50),
+          side: BorderSide(color: color, width: 2),
+          shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(String label, TextEditingController controller,
+      IconData icon,
+      {bool obscure = false}) {
+    return TextField(
+      controller: controller,
+      obscureText: obscure ? obscurePassword : false,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon),
+        suffixIcon: obscure
+            ? IconButton(
+          icon: Icon(
+            obscurePassword ? Icons.visibility_off : Icons.visibility,
+          ),
+          onPressed: () =>
+              setState(() => obscurePassword = !obscurePassword),
+        )
+            : null,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
