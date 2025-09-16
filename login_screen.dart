@@ -72,15 +72,25 @@ class _LoginScreenState extends State<LoginScreen> {
                 Expanded(
                   flex: 1,
                   child: Center(
-                    child: SingleChildScrollView(
-                      child: _buildRightLoginForm(padding: 60),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: constraints.maxHeight,
+                        maxWidth: 600,
+                      ),
+                      child: SingleChildScrollView(
+                        child: Padding(
+                          padding:
+                          const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+                          child: _buildRightLoginForm(padding: 30),
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ],
             );
           } else {
-            // Mobile layout - Hide the branding image
+            // Mobile layout - Hide the branding image and description
             return SingleChildScrollView(
               child: Column(
                 children: [
@@ -96,14 +106,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Text(
-                      "Manage sales, inventory, and staff seamlessly.\nBoost productivity with AI-powered insights.",
-                      style: TextStyle(color: Colors.black54, fontSize: 13),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
+                  // Removed description text for mobile
+
                   SingleChildScrollView(
                     child: _buildRightLoginForm(padding: 20),
                   ),
@@ -157,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildRightLoginForm({double padding = 40}) {
     return Container(
       color: Colors.white,
-      padding: EdgeInsets.symmetric(horizontal: padding, vertical: 50),
+      padding: EdgeInsets.symmetric(horizontal: padding, vertical: 30),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -183,22 +187,16 @@ class _LoginScreenState extends State<LoginScreen> {
               "Continue with Google",
               Image.asset("assets/google.png", height: 20),
               Colors.blue.shade600,
-                  () {}
-          ),
+                  () {}),
           const SizedBox(height: 16),
           _socialButton(
               "Continue with Facebook",
               Icon(Icons.facebook, color: Colors.white),
               Colors.blue.shade800,
-                  () {}
-          ),
+                  () {}),
           const SizedBox(height: 16),
-          _socialButton(
-              "Continue with Apple",
-              Image.asset("assets/apple.webp", height: 20),
-              Colors.black,
-                  () {}
-          ),
+          _socialButton("Continue with Apple", Image.asset("assets/apple.webp", height: 20),
+              Colors.black, () {}),
 
           const SizedBox(height: 30),
           const Center(child: Text("or continue with email")),
@@ -207,8 +205,7 @@ class _LoginScreenState extends State<LoginScreen> {
           // Email/Password
           _buildTextField("Email", usernameController, Icons.email_outlined),
           const SizedBox(height: 16),
-          _buildTextField("Password", passwordController, Icons.lock_outline,
-              obscure: true),
+          _buildTextField("Password", passwordController, Icons.lock_outline, obscure: true),
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerRight,
@@ -224,8 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
               onPressed: login,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red.shade600,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: loading
                   ? const CircularProgressIndicator(
@@ -251,16 +247,14 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Text(
           text,
           style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: active ? Colors.black : Colors.grey),
+              fontWeight: FontWeight.bold, color: active ? Colors.black : Colors.grey),
           textAlign: TextAlign.center,
         ),
       ),
     );
   }
 
-  Widget _socialButton(
-      String text, Widget iconWidget, Color color, VoidCallback onPressed) {
+  Widget _socialButton(String text, Widget iconWidget, Color color, VoidCallback onPressed) {
     return SizedBox(
       height: 50,
       child: OutlinedButton.icon(
@@ -270,17 +264,15 @@ class _LoginScreenState extends State<LoginScreen> {
         style: OutlinedButton.styleFrom(
           backgroundColor: color,
           foregroundColor: Colors.white,
-          minimumSize: Size(200, 50),
+          minimumSize: const Size(200, 50),
           side: BorderSide(color: color, width: 2),
-          shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller,
-      IconData icon,
+  Widget _buildTextField(String label, TextEditingController controller, IconData icon,
       {bool obscure = false}) {
     return TextField(
       controller: controller,
@@ -293,8 +285,7 @@ class _LoginScreenState extends State<LoginScreen> {
           icon: Icon(
             obscurePassword ? Icons.visibility_off : Icons.visibility,
           ),
-          onPressed: () =>
-              setState(() => obscurePassword = !obscurePassword),
+          onPressed: () => setState(() => obscurePassword = !obscurePassword),
         )
             : null,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
