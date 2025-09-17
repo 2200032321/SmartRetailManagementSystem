@@ -13,9 +13,15 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController signupNameController = TextEditingController();
+  final TextEditingController signupEmailController = TextEditingController();
+  final TextEditingController signupPasswordController = TextEditingController();
+
   bool obscurePassword = true;
   bool loading = false;
+  bool isLogin = true; // ✅ toggle between login/signup
 
+  // ✅ Login API
   Future<void> login() async {
     final username = usernameController.text.trim();
     final password = passwordController.text.trim();
@@ -58,6 +64,47 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  // ✅ Register API
+  Future<void> register() async {
+    final name = signupNameController.text.trim();
+    final email = signupEmailController.text.trim();
+    final password = signupPasswordController.text.trim();
+
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please fill all fields")),
+      );
+      return;
+    }
+
+    setState(() => loading = true);
+
+    try {
+      final url = Uri.parse('http://localhost:3000/api/auth/register');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'name': name, 'email': email, 'password': password}),
+      );
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Registration successful! Please login.")),
+        );
+        setState(() => isLogin = true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(data['message'] ?? 'Registration failed')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Server error')));
+    } finally {
+      setState(() => loading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,7 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
       body: LayoutBuilder(
         builder: (context, constraints) {
           if (constraints.maxWidth > 800) {
-            // Web/Desktop layout
+            // ✅ Web/Desktop layout
             return Row(
               children: [
                 Expanded(flex: 1, child: _buildLeftBranding()),
@@ -79,8 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       child: SingleChildScrollView(
                         child: Padding(
-                          padding:
-                          const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
                           child: _buildRightLoginForm(padding: 30),
                         ),
                       ),
@@ -90,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
             );
           } else {
-            // Mobile layout - Hide the branding image and description
+            // ✅ Mobile layout
             return SingleChildScrollView(
               child: Column(
                 children: [
@@ -98,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 28),
                     child: Text(
                       "Smart Retail Management System",
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.black87,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -106,11 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  // Removed description text for mobile
-
-                  SingleChildScrollView(
-                    child: _buildRightLoginForm(padding: 20),
-                  ),
+                  _buildRightLoginForm(padding: 20),
                 ],
               ),
             );
@@ -120,9 +162,8 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildLeftBranding({double? height}) {
+  Widget _buildLeftBranding() {
     return Container(
-      height: height,
       decoration: const BoxDecoration(
         image: DecorationImage(
           image: AssetImage("assets/loginpic.jpg"),
@@ -166,90 +207,159 @@ class _LoginScreenState extends State<LoginScreen> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Sign In / Sign Up Tabs
+          // ✅ Tabs
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _tabButton("Sign In", true),
-              _tabButton("Sign Up", false),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => isLogin = true),
+                  child: _tabButton("Sign In", isLogin),
+                ),
+              ),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => isLogin = false),
+                  child: _tabButton("Sign Up", !isLogin),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 20),
-          const Text(
-            "Sign in to access your credits and discounts",
-            style: TextStyle(fontSize: 14, color: Colors.black54),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 30),
 
-          // Social Buttons
-          _socialButton(
-              "Continue with Google",
-              Image.asset("assets/google.png", height: 20),
-              Colors.blue.shade600,
-                  () {}),
-          const SizedBox(height: 16),
-          _socialButton(
-              "Continue with Facebook",
-              Icon(Icons.facebook, color: Colors.white),
-              Colors.blue.shade800,
-                  () {}),
-          const SizedBox(height: 16),
-          _socialButton("Continue with Apple", Image.asset("assets/apple.webp", height: 20),
-              Colors.black, () {}),
-
-          const SizedBox(height: 30),
-          const Center(child: Text("or continue with email")),
-          const SizedBox(height: 20),
-
-          // Email/Password
-          _buildTextField("Email", usernameController, Icons.email_outlined),
-          const SizedBox(height: 16),
-          _buildTextField("Password", passwordController, Icons.lock_outline, obscure: true),
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-                onPressed: () {}, child: const Text("Forgot your password?")),
-          ),
-          const SizedBox(height: 20),
-
-          // Login Button
-          SizedBox(
-            height: 50,
-            child: ElevatedButton(
-              onPressed: login,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red.shade600,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: loading
-                  ? const CircularProgressIndicator(
-                color: Colors.white,
-              )
-                  : const Text("Sign In", style: TextStyle(fontSize: 16)),
-            ),
-          ),
+          // ✅ Show Login or Signup form
+          isLogin ? _buildLoginForm() : _buildSignupForm(),
         ],
       ),
     );
   }
 
-  Widget _tabButton(String text, bool active) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: active ? Colors.grey.shade300 : Colors.transparent,
-          borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(12), topRight: Radius.circular(12)),
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-              fontWeight: FontWeight.bold, color: active ? Colors.black : Colors.grey),
+  // ✅ Login Form (with social buttons)
+  Widget _buildLoginForm() {
+    return Column(
+      children: [
+        const Text(
+          "Sign in to access your credits and discounts",
+          style: TextStyle(fontSize: 14, color: Colors.black54),
           textAlign: TextAlign.center,
         ),
+        const SizedBox(height: 30),
+
+        // Social Buttons (full width)
+        _socialButton("Continue with Google",
+            Image.asset("assets/google.png", height: 20),
+            Colors.blue.shade600, () {}),
+        const SizedBox(height: 16),
+        _socialButton("Continue with Facebook",
+            const Icon(Icons.facebook, color: Colors.white),
+            Colors.blue.shade800, () {}),
+        const SizedBox(height: 16),
+        _socialButton("Continue with Apple",
+            Image.asset("assets/apple.webp", height: 20),
+            Colors.black, () {}),
+
+        const SizedBox(height: 30),
+        const Center(child: Text("or continue with email")),
+        const SizedBox(height: 20),
+
+        _buildTextField("Email", usernameController, Icons.email_outlined),
+        const SizedBox(height: 16),
+        _buildTextField("Password", passwordController, Icons.lock_outline, obscure: true),
+        const SizedBox(height: 8),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(onPressed: () {}, child: const Text("Forgot your password?")),
+        ),
+        const SizedBox(height: 20),
+
+        SizedBox(
+          height: 50,
+          width: double.infinity, // ✅ full width
+          child: ElevatedButton(
+            onPressed: login,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade600,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: loading
+                ? const CircularProgressIndicator(color: Colors.white)
+                : const Text("Sign In", style: TextStyle(fontSize: 16)),
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // ✅ Switch to Sign Up
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text("Don’t have an account? "),
+            GestureDetector(
+              onTap: () => setState(() => isLogin = false),
+              child: const Text("Sign Up", style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        )
+      ],
+    );
+  }
+
+  // ✅ Signup Form
+  Widget _buildSignupForm() {
+    return Column(
+      children: [
+        _buildTextField("Name", signupNameController, Icons.person),
+        const SizedBox(height: 16),
+        _buildTextField("Email", signupEmailController, Icons.email_outlined),
+        const SizedBox(height: 16),
+        _buildTextField("Password", signupPasswordController, Icons.lock_outline, obscure: true),
+        const SizedBox(height: 20),
+        SizedBox(
+          height: 50,
+          width: double.infinity, // ✅ full width
+          child: ElevatedButton(
+            onPressed: register,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green.shade600,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: loading
+                ? const CircularProgressIndicator(color: Colors.white)
+                : const Text("Sign Up", style: TextStyle(fontSize: 16)),
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // ✅ Switch to Sign In
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text("Already have an account? "),
+            GestureDetector(
+              onTap: () => setState(() => isLogin = true),
+              child: const Text("Sign In", style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        )
+      ],
+    );
+  }
+
+  Widget _tabButton(String text, bool active) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: active ? Colors.grey.shade300 : Colors.transparent,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(12),
+          topRight: Radius.circular(12),
+        ),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: active ? Colors.black : Colors.grey),
+        textAlign: TextAlign.center,
       ),
     );
   }
@@ -257,6 +367,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _socialButton(String text, Widget iconWidget, Color color, VoidCallback onPressed) {
     return SizedBox(
       height: 50,
+      width: double.infinity, // ✅ full width
       child: OutlinedButton.icon(
         onPressed: onPressed,
         icon: iconWidget,
@@ -264,7 +375,6 @@ class _LoginScreenState extends State<LoginScreen> {
         style: OutlinedButton.styleFrom(
           backgroundColor: color,
           foregroundColor: Colors.white,
-          minimumSize: const Size(200, 50),
           side: BorderSide(color: color, width: 2),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
@@ -282,9 +392,7 @@ class _LoginScreenState extends State<LoginScreen> {
         prefixIcon: Icon(icon),
         suffixIcon: obscure
             ? IconButton(
-          icon: Icon(
-            obscurePassword ? Icons.visibility_off : Icons.visibility,
-          ),
+          icon: Icon(obscurePassword ? Icons.visibility_off : Icons.visibility),
           onPressed: () => setState(() => obscurePassword = !obscurePassword),
         )
             : null,
